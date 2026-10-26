@@ -1,0 +1,27 @@
+{
+  "name": "bitswarmer",
+  "version": "1.0.0",
+  "description": "BitSwarmer - CRT Cyberpunk Galaga Arcade & Autonomous AI Web Scraping Engine",
+  "main": "index.html",
+  "scripts": {
+    "start": "node server.js",
+    "serve": "python -m http.server 8080"
+  },
+  "dependencies": {
+    "express": "^4.22.3",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
+    "node-fetch": "^2.7.0"
+  },
+  "keywords": [
+    "cyberpunk",
+    "galaga",
+    "arcade",
+    "web-scraper",
+    "8-bit",
+    "canvas",
+    "chiptune"
+  ],
+  "author": "BitSwarmer Core Team",
+  "license": "MIT"
+}

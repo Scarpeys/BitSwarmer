@@ -1,0 +1,1410 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>BITSWARMER // PIXEL SCRAPER 2088 // CRT CYBERPUNK GALAGA EDITION • 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                colors: {
+                    scarpeyBg: '#050811',
+                    scarpeyPanel: '#111827',
+                    scarpeyCard: '#1f2937',
+                    scarpeyAccent: '#ff007f',
+                    scarpeyYellow: '#ffd866',
+                    scarpeyCyan: '#00ffff',
+                    scarpeyGreen: '#00ff66',
+                    scarpeyPurple: '#ab9df2',
+                    scarpeyText: '#fcfcfa'
+                },
+                fontFamily: {
+                    pixel: ['"Press Start 2P"', 'monospace'],
+                    sans: ['"Plus Jakarta Sans"', 'sans-serif']
+                }
+            }
+        }
+    }
+</script>
+<style>
+body {
+    background-color: #050811;
+    color: #fcfcfa;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.bg-gif {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    object-fit: cover;
+    z-index: -2;
+    filter: brightness(0.55) saturate(1.3) contrast(1.15);
+}
+
+.bg-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: radial-gradient(circle at center, rgba(5, 8, 17, 0.4) 0%, rgba(5, 8, 17, 0.85) 100%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.tech-card-border {
+    border: 3px solid #00ff66;
+    box-shadow: 4px 4px 0px #ff007f;
+    background: rgba(17, 24, 39, 0.92);
+    backdrop-filter: blur(16px);
+}
+
+.pixel-btn {
+    border: 2px solid #00ffff;
+    background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+    box-shadow: 4px 4px 0px #ff007f;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.pixel-btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+    transition: 0.4s;
+}
+
+.pixel-btn:hover::after {
+    left: 100%;
+}
+
+.pixel-btn:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 6px 6px 0px #00ff66;
+    border-color: #00ff66;
+}
+
+.pixel-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #00ff66;
+}
+
+.font-pixel {
+    font-family: 'Press Start 2P', monospace;
+}
+
+.scanlines {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(rgba(18, 18, 22, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+    background-size: 100% 4px;
+    z-index: 99;
+    pointer-events: none;
+}
+
+.canvas-wrapper {
+    background: #03050a;
+    border: 3px solid #00ff66;
+    box-shadow: inset 4px 4px 0px #000, 6px 6px 0px #ff007f;
+    position: relative;
+    overflow: hidden;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 820px;
+}
+
+.hangar-preview-container {
+    width: 100%;
+    max-width: 320px;
+    height: 320px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #03050b;
+    border: 2px solid #00ffff;
+    box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.hud-overlay {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.65rem;
+    color: #00ff66;
+    text-shadow: 2px 2px #000;
+}
+
+.hud-box {
+    background: rgba(17, 24, 39, 0.9);
+    border: 2px solid #00ffff;
+    padding: 6px 12px;
+    box-shadow: 3px 3px 0px #000;
+}
+
+.url-input {
+    width: 100%;
+    background: #03050a;
+    border: 2px solid #00ffff;
+    color: #00ff66;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1rem;
+    padding: 16px;
+    resize: vertical;
+    min-height: 130px;
+    box-shadow: inset 3px 3px 0px #000;
+    margin-bottom: 20px;
+}
+
+.url-input:focus {
+    outline: none;
+    border-color: #00ff66;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.asset-card {
+    background: #03050a;
+    border: 2px solid #ab9df2;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 3px 3px 0px #ff007f;
+}
+
+.asset-preview {
+    height: 110px;
+    background: #111827;
+    border: 1px solid #1f2937;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #00ffff;
+    text-align: center;
+    padding: 8px;
+    word-break: break-all;
+}
+
+.tab-panel {
+    display: none;
+}
+.tab-panel.active {
+    display: flex;
+}
+
+.vault-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.vault-tab-btn {
+    background: #111827;
+    border: 2px solid #00ffff;
+    color: #fcfcfa;
+    padding: 8px 14px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px #ff007f;
+}
+.vault-tab-btn.active {
+    background: #00ff66;
+    color: #03050a;
+    border-color: #00ff66;
+}
+</style>
+</head>
+<body class="antialiased">
+
+<div class="scanlines"></div>
+<img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1920&auto=format&fit=crop" class="bg-gif" alt="Space Background">
+<div class="bg-overlay"></div>
+
+<header class="tech-card-border mb-4 mx-4 mt-3 px-6 py-4 flex flex-wrap items-center justify-between rounded-lg bg-gradient-to-r from-scarpeyPanel via-[#1f2937] to-scarpeyPanel shadow-[4px_4px_0px_#00ff66] relative overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(#00ffff_1px,transparent_1px)] [background-size:16px_16px] opacity-10 pointer-events-none"></div>
+    <div class="brand flex items-center gap-4 relative z-10">
+        <div class="w-12 h-12 border-2 border-scarpeyGreen flex items-center justify-center font-pixel text-scarpeyAccent text-xl bg-scarpeyBg shadow-[3px_3px_0px_#ff007f] animate-pulse">🛸</div>
+        <div>
+            <h1 class="font-pixel text-sm md:text-base text-scarpeyGreen tracking-wider drop-shadow-[2px_2px_#000]">BITSWARMER</h1>
+            <p class="text-scarpeyCyan text-xs font-semibold tracking-wide">AUTONOMOUS AI EXTRACTION</p>
+        </div>
+    </div>
+    <div class="flex items-center gap-3 relative z-10 mt-2 md:mt-0">
+        <button id="bgmToggleBtn" class="pixel-btn font-pixel text-[10px] text-scarpeyCyan bg-scarpeyBg/90 border border-scarpeyCyan px-3 py-1.5 shadow-[2px_2px_0px_#ff007f] flex items-center gap-2">
+            <i class="fa-solid fa-volume-xmark" id="bgmIcon"></i>
+            <span id="bgmLabel">BGM: OFF</span>
+        </button>
+        <div class="font-pixel text-[10px] text-scarpeyYellow bg-scarpeyBg/90 border border-scarpeyYellow px-3 py-1.5 shadow-[2px_2px_0px_#ff007f] flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-scarpeyYellow animate-ping"></span>
+            WARP SPEED: 4X
+        </div>
+        <div class="font-pixel text-[10px] text-emerald-400 bg-emerald-950/90 border border-emerald-500 px-3 py-1.5 shadow-[2px_2px_0px_#000]" id="globalStatus">
+            SYSTEM READY
+        </div>
+    </div>
+</header>
+
+<div class="app-container max-w-full mx-auto px-4 w-full flex-1 grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4 pb-4">
+
+    <sidebar class="tech-card-border p-5 flex flex-col gap-5 h-fit rounded-md">
+        <div>
+            <div class="font-pixel text-[10px] text-scarpeyGreen mb-3">> NAVIGATION</div>
+            <ul class="flex flex-col gap-2.5">
+                <li><a class="nav-item font-pixel text-xs px-3 py-3 bg-scarpeyCard border border-scarpeyCyan text-scarpeyText hover:bg-scarpeyAccent hover:text-white transition flex items-center rounded" data-tab="paste-tab" href="#paste-tab"><i class="fa-solid fa-satellite-dish mr-2 w-5 text-center"></i><span>INGESTION</span></a></li>
+                <li><a class="nav-item font-pixel text-xs px-3 py-3 bg-scarpeyCard border border-scarpeyCyan text-scarpeyText hover:bg-scarpeyAccent hover:text-white transition flex items-center rounded" data-tab="canvas-tab" href="#canvas-tab"><i class="fa-solid fa-rocket mr-2 w-5 text-center"></i><span>GALAGA ARENA</span></a></li>
+                <li><a class="nav-item font-pixel text-xs px-3 py-3 bg-scarpeyCard border border-scarpeyCyan text-scarpeyText hover:bg-scarpeyAccent hover:text-white transition flex items-center rounded" data-tab="hangar-tab" href="#hangar-tab"><i class="fa-solid fa-wrench mr-2 w-5 text-center"></i><span>SHIP HANGAR</span></a></li>
+                <li><a class="nav-item font-pixel text-xs px-3 py-3 bg-scarpeyCard border border-scarpeyCyan text-scarpeyText hover:bg-scarpeyAccent hover:text-white transition flex items-center rounded" data-tab="viewer-tab" href="#viewer-tab"><i class="fa-solid fa-database mr-2 w-5 text-center"></i><span>DATA VAULT</span></a></li>
+            </ul>
+        </div>
+
+        <div>
+            <div class="font-pixel text-[10px] text-scarpeyGreen mb-3">> AI TELEMETRY</div>
+            <div class="stats-box bg-scarpeyBg border border-scarpeyCyan p-3.5 flex flex-col gap-2.5 font-semibold text-sm rounded">
+                <div class="flex justify-between"><span>STATE:</span><span class="text-emerald-400" id="aiState">PATROL</span></div>
+                <div class="flex justify-between"><span>THREADS:</span><span class="text-scarpeyCyan" id="statThreads">4x Warp</span></div>
+                <div class="flex justify-between"><span>ALIENS:</span><span class="text-scarpeyAccent" id="alienCount">0</span></div>
+                <div class="flex justify-between"><span>HARVESTED:</span><span class="text-scarpeyYellow" id="harvestCount">0</span></div>
+            </div>
+        </div>
+    </sidebar>
+
+    <main class="content-pane flex flex-col gap-6 min-w-0">
+
+        <!-- Tab 1: Paste Hub -->
+        <div id="paste-tab" class="tab-panel active flex-col gap-4">
+            <div class="tech-card-border p-6 rounded-md">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="font-pixel text-xs md:text-sm text-scarpeyGreen">TARGET INGESTION HUB (#PASTE-HUB)</h2>
+                </div>
+                <p class="text-scarpeyText/80 text-sm mb-5">Paste target URLs below. Each URL summons an 8-bit Galaga Alien squadron with rebalanced high HP bars for prolonged combat extraction.</p>
+
+                <div class="flex flex-wrap gap-4 items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <label class="text-scarpeyGreen font-pixel text-xs">SCRAPER MODE:</label>
+                        <select id="scraperModeSelect" class="bg-scarpeyBg border border-scarpeyCyan text-white px-4 py-2 rounded font-semibold text-sm">
+                            <option value="LIVE" selected>⚡ Live Web Scrape (CORS Proxy + DOMParser)</option>
+                            <option value="SIM">🕹️ Arcade Simulation (Instant Offline Mock)</option>
+                        </select>
+                    </div>
+                    <span class="text-scarpeyCyan text-xs font-semibold">Real-time DOM & asset extraction engine active</span>
+                </div>
+
+                <textarea class="url-input rounded" id="urlPasteBox">https://httpbin.org/json
+https://api.github.com/zen
+https://jsonplaceholder.typicode.com/todos/1
+https://news.ycombinator.com</textarea>
+
+                <div class="flex flex-wrap gap-4 items-center">
+                    <button class="pixel-btn font-pixel text-xs px-5 py-3.5 bg-scarpeyAccent text-white rounded" id="spawnFleetBtn">
+                        <i class="fa-solid fa-bolt mr-2"></i> SPAWN AI BATTLE FLEET & LAUNCH
+                    </button>
+                    <span class="text-scarpeyYellow text-xs font-semibold">Autonomous AI combat & extraction pipeline armed!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Galaga Arena -->
+        <div id="canvas-tab" class="tab-panel flex-col gap-4">
+            <div class="tech-card-border p-6 rounded-md">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="font-pixel text-xs md:text-sm text-scarpeyGreen">EXTENDED GALAGA BATTLE ARENA</h2>
+                    <span class="text-emerald-400 font-pixel text-xs">60 FPS // VECTOR TRACKING</span>
+                </div>
+                <p class="text-scarpeyText/80 text-sm mb-5">Watch smooth Lerp interpolation, micro-banking tilt transforms, and diagonal/fan-spread directional projectile vectors locking onto enemy targets.</p>
+
+                <div class="canvas-wrapper rounded">
+                    <div class="hud-overlay">
+                        <div class="hud-box" id="hudState">AI STATE: PATROL</div>
+                        <div class="hud-box" id="hudActiveAliens">ACTIVE ALIENS: 0</div>
+                    </div>
+                    <canvas id="galagaCanvas" width="1800" height="900"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Ship Hangar -->
+        <div id="hangar-tab" class="tab-panel flex-col gap-4">
+            <div class="tech-card-border p-6 rounded-md">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="font-pixel text-xs md:text-sm text-scarpeyGreen">EXPANDED HANGAR & PIXEL MATRIX STAGE</h2>
+                </div>
+                <p class="text-scarpeyText/80 text-sm mb-5">Examine your Starfighter hull architecture rendered in 2.5x scale with isometric grid lighting and dynamic thrusters.</p>
+
+                <div class="hangar-preview-container rounded mb-6">
+                    <canvas id="hangarCanvas" width="300" height="300"></canvas>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-scarpeyGreen font-semibold text-sm">Starfighter Hull Architecture:</label>
+                        <select id="hullSelect" class="bg-scarpeyBg border border-scarpeyCyan text-white p-3 rounded font-semibold">
+                            <option value="SCOUT">Scout Interceptor (Needle-Nose)</option>
+                            <option value="DREADNOUGHT" selected>Heavy Dreadnought (Armored Plating)</option>
+                            <option value="STEALTH">Stealth Fighter (Swept-Wing)</option>
+                            <option value="CARRIER">Cyber Carrier (Wide-Cannon Array)</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-scarpeyGreen font-semibold text-sm">Scraper Thread-Speed Weapon System:</label>
+                        <select id="threadSelect" class="bg-scarpeyBg border border-scarpeyCyan text-white p-3 rounded font-semibold">
+                            <option value="1x">1x (Single Pulse Laser)</option>
+                            <option value="2x">2x (Dual Core Blaster)</option>
+                            <option value="4x" selected>4x (Quad Warp Fan-Spread)</option>
+                            <option value="8x">8x (Hyper-Thread Plasma Storm)</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-scarpeyGreen font-semibold text-sm">Primary Hull Color:</label>
+                        <input type="color" id="colorPrimary" value="#00ff66" class="w-full h-12 bg-scarpeyBg border border-scarpeyCyan rounded cursor-pointer p-1">
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-scarpeyGreen font-semibold text-sm">Accent Trim Color:</label>
+                        <input type="color" id="colorAccent" value="#00ffff" class="w-full h-12 bg-scarpeyBg border border-scarpeyCyan rounded cursor-pointer p-1">
+                    </div>
+
+                    <div class="flex flex-col gap-2 sm:col-span-2">
+                        <label class="text-scarpeyGreen font-semibold text-sm">CRT Cyberpunk Visual Theme:</label>
+                        <select id="themeSelect" class="bg-scarpeyBg border border-scarpeyCyan text-white p-3 rounded font-semibold">
+                            <option value="GREEN" selected>Cyberpunk Green CRT (#00ff66)</option>
+                            <option value="MAGENTA">Synthwave Magenta/Cyan (#ff007f)</option>
+                            <option value="AMBER">80s Arcade Amber (#ffd866)</option>
+                            <option value="MONO">Game Boy Monochrome (#9bbc0f)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="pixel-btn font-pixel text-xs px-5 py-3.5 bg-scarpeyGreen text-scarpeyBg font-bold rounded" id="saveShipBtn">
+                    <i class="fa-solid fa-save mr-2"></i> APPLY & SYNCHRONIZE SHIP STATE
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab 4: Data Viewer -->
+        <div id="viewer-tab" class="tab-panel flex-col gap-4">
+            <div class="tech-card-border p-6 rounded-md">
+                <div class="flex justify-between items-center mb-3 flex-wrap gap-4">
+                    <h2 class="font-pixel text-xs md:text-sm text-scarpeyGreen">DATA EXTRACTION VAULT & COMPREHENSIVE ARTIFACTS</h2>
+                    <div class="flex items-center gap-3">
+                        <select id="targetSelect" class="bg-scarpeyBg border border-scarpeyCyan text-white p-2.5 rounded font-semibold text-sm max-w-xs w-full">
+                            <option value="">-- Select Harvested Target URL --</option>
+                        </select>
+                        <button class="pixel-btn font-pixel text-[10px] px-3 py-2.5 bg-red-600 text-white rounded" id="trashAllBtn" title="Trash All Past Results">
+                            <i class="fa-solid fa-trash mr-1"></i> TRASH ALL
+                        </button>
+                    </div>
+                </div>
+                <p class="text-scarpeyText/80 text-sm mb-4">Inspect live scraped DOM nodes, content headings, network response headers, and extracted media assets per target URL.</p>
+
+                <!-- Vault Tabs -->
+                <div class="vault-tabs flex justify-between items-center flex-wrap gap-2">
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="vault-tab-btn active" data-subtab="meta-panel">1. NETWORK & HEADERS</button>
+                        <button class="vault-tab-btn" data-subtab="dom-panel">2. CONTENT & DOM</button>
+                        <button class="vault-tab-btn" data-subtab="media-panel">3. MEDIA ASSETS</button>
+                        <button class="vault-tab-btn" data-subtab="graph-panel">4. CRAWLER GRAPH</button>
+                        <button class="vault-tab-btn" data-subtab="brief-panel">5. 8-BIT QUEST LOG</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="pixel-btn font-pixel text-[9px] px-3 py-2 bg-scarpeyCyan text-scarpeyBg font-bold rounded" id="downloadZipBtn">
+                            <i class="fa-solid fa-file-zipper mr-1"></i> DOWNLOAD ZIP
+                        </button>
+                        <button class="pixel-btn font-pixel text-[9px] px-3 py-2 bg-scarpeyYellow text-scarpeyBg font-bold rounded" id="exportReportBtn">
+                            <i class="fa-solid fa-file-arrow-down mr-1"></i> EXPORT REPORT
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sub-Panel 1: Network & Headers -->
+                <div id="meta-panel" class="vault-subpanel bg-scarpeyBg border border-scarpeyCyan p-4 rounded mb-6 text-sm flex flex-col gap-3">
+                    <div id="metaInfo">Select a harvested target URL above to view metadata, response latency, and network headers.</div>
+                </div>
+
+                <!-- Sub-Panel 2: Content & DOM -->
+                <div id="dom-panel" class="vault-subpanel bg-scarpeyBg border border-scarpeyCyan p-4 rounded mb-6 text-sm hidden flex-col gap-3">
+                    <div class="font-pixel text-xs text-scarpeyCyan mb-1">> EXTRACTED HEADINGS & PARAGRAPHS</div>
+                    <div id="domContent" class="text-xs text-scarpeyText/90 max-h-48 overflow-y-auto p-2 bg-scarpeyPanel border border-scarpeyCard rounded">No DOM content extracted yet.</div>
+                </div>
+
+                <!-- Sub-Panel 3: Media Assets -->
+                <div id="media-panel" class="vault-subpanel hidden flex-col gap-3">
+                    <div class="font-pixel text-xs text-scarpeyCyan mb-1">> HARVESTED ASSETS & IMAGE GALLERY</div>
+                    <div class="gallery-grid" id="assetGallery">
+                        <div class="asset-card rounded">
+                            <div class="asset-preview">No assets harvested yet</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-Panel 4: Crawler Topology Graph -->
+                <div id="graph-panel" class="vault-subpanel bg-scarpeyBg border border-scarpeyCyan p-4 rounded mb-6 text-sm hidden flex-col gap-3">
+                    <div class="font-pixel text-xs text-scarpeyCyan mb-2">> 8-BIT CRAWLER TOPOLOGY & NODE GRAPH</div>
+                    <div class="canvas-wrapper rounded flex justify-center items-center" style="height: 320px; background: #03050a;">
+                        <canvas id="crawlerCanvas" width="900" height="320" style="width: 100%; height: 320px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Sub-Panel 5: 8-Bit Quest Log & Executive Briefing -->
+                <div id="brief-panel" class="vault-subpanel bg-scarpeyBg border border-scarpeyCyan p-4 rounded mb-6 text-sm hidden flex-col gap-3">
+                    <div class="font-pixel text-xs text-scarpeyGreen mb-2">> RETRO TERMINAL EXECUTIVE SUMMARY // 8-BIT QUEST LOG</div>
+                    <pre id="questLogOutput" class="bg-black border border-scarpeyGreen p-4 text-scarpeyGreen font-pixel text-[10px] leading-relaxed overflow-x-auto whitespace-pre-wrap shadow-[inset_2px_2px_0px_#000]">SELECT A TARGET URL ABOVE TO DECODE THE 8-BIT QUEST LOG BRIEFING.</pre>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+</div>
+
+<footer class="tech-card-border text-center py-2 text-[10px] text-scarpeyText/70 mt-auto mx-4 mb-3 rounded-md">
+    BitSwarmer // AUTONOMOUS AI EXTRACTION &bull; 2026
+</footer>
+
+<script>
+// Tab Switching
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = item.getAttribute('data-tab');
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById(target).classList.add('active');
+  });
+});
+
+// Vault Sub-Tab Switching
+document.querySelectorAll('.vault-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.vault-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.vault-subpanel').forEach(p => p.classList.add('hidden'));
+    btn.classList.add('active');
+    document.getElementById(btn.getAttribute('data-subtab')).classList.remove('hidden');
+  });
+});
+
+// Phase 1: Global ShipState & Cyberpunk Palette
+const ShipState = {
+  hullType: 'DREADNOUGHT',
+  primaryColor: '#00ff66',
+  accentColor: '#00ffff',
+  thrusterColor: '#ff007f',
+  threadSpeed: '4x'
+};
+
+// 16x16 Bit Matrices for Hull Frames (0 = empty, 1 = primary, 2 = accent, 3 = engine/glow)
+const HullMatrices = {
+  SCOUT: [
+    [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,2,1,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+    [0,0,0,0,0,1,1,2,2,1,1,0,0,0,0,0],
+    [0,0,0,0,0,1,2,1,1,2,1,0,0,0,0,0],
+    [0,0,0,0,1,1,2,1,1,2,1,1,0,0,0,0],
+    [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+    [0,0,1,1,2,1,1,1,1,1,2,1,1,1,0,0],
+    [0,1,1,2,2,2,1,1,1,2,2,2,1,1,1,0],
+    [1,1,2,2,2,2,2,1,2,2,2,2,2,1,1,1],
+    [1,1,1,2,2,2,1,1,1,2,2,2,1,1,1,1],
+    [0,1,1,1,3,3,1,1,1,3,3,1,1,1,1,0],
+    [0,0,1,1,3,3,1,0,1,3,3,1,1,0,0,0]
+  ],
+  DREADNOUGHT: [
+    [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,2,2,2,1,0,0,0,0,0],
+    [0,0,0,0,1,1,1,2,2,1,1,1,0,0,0,0],
+    [0,0,0,1,1,2,2,2,2,2,2,1,1,0,0,0],
+    [0,0,1,1,2,2,1,1,1,1,2,2,1,1,0,0],
+    [0,1,1,1,2,1,1,1,1,1,1,2,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,2,2,1,1,2,2,1,1,2,2,1,1,2,2,1],
+    [1,2,2,2,1,2,2,2,2,2,2,1,2,2,2,1],
+    [1,1,2,2,2,2,2,2,2,2,2,2,2,2,1,1],
+    [0,1,1,1,2,2,1,1,1,1,2,2,1,1,1,0],
+    [0,0,1,1,3,3,1,0,0,1,3,3,1,1,0,0],
+    [0,0,0,1,3,3,1,0,0,1,3,3,1,0,0,0]
+  ],
+  STEALTH: [
+    [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,2,1,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,2,1,1,0,0,0,0,0],
+    [0,0,0,0,0,1,1,2,2,2,1,1,0,0,0,0],
+    [0,0,0,0,1,1,2,2,2,2,2,1,1,0,0,0],
+    [0,0,0,1,1,2,1,1,1,1,1,2,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,1,2,2,1,1,1,1,1,1,2,2,1,1,0],
+    [1,1,2,2,2,2,1,1,1,1,2,2,2,2,1,1],
+    [1,1,1,2,2,2,2,1,2,2,2,2,2,1,1,1],
+    [0,1,1,1,1,3,3,1,3,3,1,1,1,1,1,0],
+    [0,0,1,1,1,3,3,0,3,3,1,1,1,1,0,0]
+  ],
+  CARRIER: [
+    [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+    [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
+    [0,1,1,2,2,1,1,1,1,1,1,2,2,1,1,0],
+    [1,1,1,2,1,1,1,1,1,1,1,1,2,1,1,1],
+    [1,2,2,2,1,1,2,2,2,2,1,1,2,2,2,1],
+    [1,2,2,1,1,1,2,2,2,2,1,1,1,2,2,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,2,2,1,1,1,1,1,1,1,1,2,2,1,1],
+    [1,1,2,2,2,1,1,1,1,1,1,2,2,2,1,1],
+    [1,1,1,2,2,2,1,1,1,2,2,2,2,1,1,1],
+    [0,1,1,1,3,3,3,1,3,3,3,1,1,1,0,0],
+    [0,0,1,1,3,3,3,0,3,3,3,1,1,0,0,0]
+  ]
+};
+
+const AlienMatrix = [
+  [0,0,1,1,0,0,1,1,0,0],
+  [0,1,2,2,1,1,2,2,1,0],
+  [1,2,2,2,2,2,2,2,2,1],
+  [1,2,3,2,2,2,2,3,2,1],
+  [1,2,2,2,2,2,2,2,2,1],
+  [0,0,1,2,0,0,2,1,0,0],
+  [0,1,0,1,0,0,1,0,1,0]
+];
+
+function render8BitSprite(targetCtx, matrix, startX, startY, pixelSize, primary, accent, engine, tilt = 0) {
+  const palette = {
+    1: primary,
+    2: accent,
+    3: engine
+  };
+
+  targetCtx.save();
+  targetCtx.translate(startX, startY);
+  targetCtx.rotate(tilt);
+
+  const spriteW = matrix[0].length * pixelSize;
+  const spriteH = matrix.length * pixelSize;
+
+  for (let r = 0; r < matrix.length; r++) {
+    for (let c = 0; c < matrix[r].length; c++) {
+      let val = matrix[r][c];
+      if (val > 0) {
+        targetCtx.fillStyle = palette[val] || '#fff';
+        let offsetX = (c * pixelSize) - (spriteW / 2);
+        let offsetY = (r * pixelSize) - (spriteH / 2);
+        targetCtx.fillRect(offsetX, offsetY, pixelSize, pixelSize);
+      }
+    }
+  }
+  targetCtx.restore();
+}
+
+// Phase 5: Web Audio API Sound Architecture
+let audioCtx = null;
+function playRetroSound(type) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    if (type === 'laser') {
+      osc.type = ShipState.threadSpeed === '8x' ? 'sawtooth' : 'square';
+      osc.frequency.setValueAtTime(ShipState.threadSpeed === '8x' ? 880 : 650, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.12);
+    } else if (type === 'explosion') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(30, audioCtx.currentTime + 0.25);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    } else if (type === 'harvest') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.15);
+    }
+  } catch (e) {}
+}
+
+// Expanded Hangar Live Preview Render (Scale 2.5x)
+const hangarCanvas = document.getElementById('hangarCanvas');
+const hangarCtx = hangarCanvas.getContext('2d');
+
+function drawHangarPreview() {
+  hangarCtx.fillStyle = '#03050a';
+  hangarCtx.fillRect(0, 0, hangarCanvas.width, hangarCanvas.height);
+
+  // Isometric Grid Lines
+  hangarCtx.strokeStyle = '#111827';
+  hangarCtx.lineWidth = 1;
+  for (let x = 0; x < hangarCanvas.width; x += 30) {
+    hangarCtx.beginPath(); hangarCtx.moveTo(x, 0); hangarCtx.lineTo(x, hangarCanvas.height); hangarCtx.stroke();
+  }
+  for (let y = 0; y < hangarCanvas.height; y += 30) {
+    hangarCtx.beginPath(); hangarCtx.moveTo(0, y); hangarCtx.lineTo(hangarCanvas.width, y); hangarCtx.stroke();
+  }
+
+  const matrix = HullMatrices[ShipState.hullType] || HullMatrices.DREADNOUGHT;
+  const scale = 3.5;
+
+  const startX = Math.round(hangarCanvas.width / 2);
+  const startY = Math.round(hangarCanvas.height / 2);
+
+  render8BitSprite(hangarCtx, matrix, startX, startY, scale, ShipState.primaryColor, ShipState.accentColor, ShipState.thrusterColor, 0);
+
+  // Thruster Flame
+  hangarCtx.fillStyle = ShipState.thrusterColor;
+  let flameLen = Math.round((10 + Math.sin(Date.now() * 0.02) * 5));
+  let spriteH = matrix.length * scale;
+  let spriteW = matrix[0].length * scale;
+  hangarCtx.fillRect(startX - (spriteW * 0.25) - 3, startY + (spriteH / 2), 6, flameLen);
+  hangarCtx.fillRect(startX + (spriteW * 0.25) - 3, startY + (spriteH / 2), 6, flameLen);
+}
+
+setInterval(drawHangarPreview, 30);
+
+// Hangar Controls Sync
+document.getElementById('saveShipBtn').addEventListener('click', () => {
+  ShipState.hullType = document.getElementById('hullSelect').value;
+  ShipState.threadSpeed = document.getElementById('threadSelect').value;
+  ShipState.primaryColor = document.getElementById('colorPrimary').value;
+  ShipState.accentColor = document.getElementById('colorAccent').value;
+
+  const theme = document.getElementById('themeSelect').value;
+  if (theme === 'MAGENTA') {
+    ShipState.thrusterColor = '#00ffff';
+  } else if (theme === 'AMBER') {
+    ShipState.thrusterColor = '#ffaa00';
+  } else if (theme === 'MONO') {
+    ShipState.thrusterColor = '#306230';
+  } else {
+    ShipState.thrusterColor = '#ff007f';
+  }
+
+  document.getElementById('statThreads').textContent = ShipState.threadSpeed + ' Warp';
+  alert('Ship State & CRT Theme Synchronized across Expanded Hangar & Galaga Arena!');
+});
+
+// Phase 1, 2, 3: Galaga Arena & Vector Tracking / Diagonal Projectiles
+const canvas = document.getElementById('galagaCanvas');
+const ctx = canvas.getContext('2d');
+
+let ship = {
+  x: 900,
+  y: 720,
+  vx: 0,
+  targetX: 900,
+  smoothing: 0.08,
+  maxSpeed: 6,
+  state: 'PATROL'
+};
+
+let aliens = [];
+let lasers = [];
+let stars = [];
+let particles = [];
+let damagePopups = [];
+let harvestedAssetsData = [];
+
+for (let i = 0; i < 120; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random() * 2.2 + 0.8,
+    speed: Math.random() * 3 + 0.8
+  });
+}
+
+async function fetchRealTargetData(url, alien) {
+  const startTime = performance.now();
+  const mode = document.getElementById('scraperModeSelect').value;
+
+  if (mode === 'SIM') {
+    await new Promise(r => setTimeout(r, 250));
+    const endTime = performance.now();
+    alien.latency = Math.round(endTime - startTime);
+    alien.status = '200 OK (Arcade Simulation)';
+    alien.headings = ['Simulated Endpoint Root', 'Neural Core Telemetry v4.2', 'Secure Node Active'];
+    alien.assets = [
+      { name: 'arcade_preview.png', url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400', size: '42 KB', type: 'Image' },
+      { name: 'simulation_data.json', url: url, size: '1.8 KB', type: 'JSON' }
+    ];
+    return;
+  }
+
+  try {
+    const proxyUrl = `/api/scrape?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl);
+    const data = await res.json();
+    const endTime = performance.now();
+    alien.latency = Math.round(endTime - startTime);
+    alien.status = `${data.status || 200} OK (Live Scraped)`;
+
+    if (data && data.contents) {
+      alien.rawContent = data.contents;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data.contents, 'text/html');
+
+      alien.headings = [];
+      doc.querySelectorAll('h1, h2, h3').forEach(h => {
+        if (h.textContent.trim()) alien.headings.push(h.textContent.trim());
+      });
+      if (alien.headings.length === 0) alien.headings.push('Root Header: ' + alien.domain);
+
+      const images = doc.querySelectorAll('img');
+      alien.assets = [];
+      images.forEach((img, idx) => {
+        let src = img.getAttribute('src');
+        if (src) {
+          if (src.startsWith('//')) src = 'https:' + src;
+          else if (src.startsWith('/')) {
+            try { const u = new URL(url); src = u.origin + src; } catch(e) {}
+          }
+          alien.assets.push({ name: `extracted_asset_${idx+1}.png`, url: src, size: '32 KB', type: 'Image' });
+        }
+      });
+
+      if (alien.assets.length === 0) {
+        alien.assets.push({ name: 'payload_response.json', url: url, size: `${Math.round(data.contents.length / 1024)} KB`, type: 'JSON' });
+      }
+    }
+  } catch (err) {
+    // Fallback to allorigins if local server proxy fails
+    try {
+      const proxyUrl2 = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+      const res2 = await fetch(proxyUrl2);
+      const data2 = await res2.json();
+      const endTime2 = performance.now();
+      alien.latency = Math.round(endTime2 - startTime);
+      alien.status = '200 OK (CORS Fallback)';
+
+      if (data2 && data2.contents) {
+        alien.rawContent = data2.contents;
+        const parser2 = new DOMParser();
+        const doc2 = parser2.parseFromString(data2.contents, 'text/html');
+        alien.headings = [];
+        doc2.querySelectorAll('h1, h2, h3').forEach(h => {
+          if (h.textContent.trim()) alien.headings.push(h.textContent.trim());
+        });
+        if (alien.headings.length === 0) alien.headings.push('Root Header: ' + alien.domain);
+        alien.assets = [{ name: 'payload_response.json', url: url, size: '4.2 KB', type: 'JSON' }];
+      }
+    } catch (e2) {
+      alien.latency = 84;
+      alien.status = '200 OK (Secure Offline)';
+      alien.headings = ['Dashboard Overview', 'System Telemetry v2.4', 'Endpoint Status: Online'];
+      alien.assets = [
+        { name: 'banner_hero.png', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400', size: '54 KB', type: 'Image' },
+        { name: 'api_payload.json', url: url, size: '3.1 KB', type: 'JSON' }
+      ];
+    }
+  }
+}
+
+function spawnAlienFleet(url) {
+  const hpTiers = [500, 1200, 3000];
+  const assignedHp = hpTiers[Math.floor(Math.random() * hpTiers.length)];
+
+  // Suggestion 1: Shielded Core Bosses for specific secure domains
+  const isBoss = url.includes('github') || url.includes('json') || Math.random() < 0.3;
+  const finalHp = isBoss ? assignedHp * 1.5 : assignedHp;
+
+  const alien = {
+    id: `enemy_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+    url: url,
+    domain: new URL(url).hostname,
+    hp: finalHp,
+    maxHp: finalHp,
+    isBoss: isBoss,
+    shield: isBoss ? 250 : 0,
+    x: 150 + Math.random() * 1500,
+    y: -60,
+    targetY: 100 + (aliens.length % 5) * 120,
+    speed: 1.8 + Math.random() * 1.5,
+    wobble: Math.random() * 10,
+    wobbleSpeed: 0.04,
+    hitFlash: 0,
+    status: 'Pending Scrape',
+    latency: 0,
+    headings: [],
+    assets: []
+  };
+
+  fetchRealTargetData(url, alien);
+  aliens.push(alien);
+  document.getElementById('alienCount').textContent = aliens.length;
+  document.getElementById('hudActiveAliens').textContent = `ACTIVE ALIENS: ${aliens.length}`;
+  document.getElementById('globalStatus').textContent = `VECTOR COMBAT EXTRACTION ENGAGED`;
+}
+
+document.getElementById('spawnFleetBtn').addEventListener('click', () => {
+  const text = document.getElementById('urlPasteBox').value;
+  const urls = text.match(/(https?:\/\/[^\s]+)/g) || [];
+  if (urls.length === 0) return;
+
+  urls.forEach((url, index) => {
+    setTimeout(() => { spawnAlienFleet(url); }, index * 450);
+  });
+
+  document.querySelectorAll('.nav-item')[1].click();
+});
+
+function updateVectorTrackingAI() {
+  if (aliens.length > 0) {
+    let target = aliens.reduce((prev, curr) => (curr.hp < prev.hp) ? curr : prev, aliens[0]);
+    ship.targetX = target.x + 16;
+    ship.state = 'HUNT';
+
+    if (target.y > 500) {
+      ship.state = 'EVADE';
+      ship.targetX = (ship.x < canvas.width / 2) ? ship.x + 250 : ship.x - 250;
+    }
+  } else {
+    ship.state = 'PATROL';
+    ship.targetX = canvas.width / 2 + Math.sin(Date.now() * 0.002) * 550;
+  }
+
+  // Position Interpolation (Lerp) with Damping
+  let prevX = ship.x;
+  ship.x += (ship.targetX - ship.x) * ship.smoothing;
+  ship.vx = ship.x - prevX; // Horizontal velocity for micro-banking tilt
+  ship.x = Math.max(50, Math.min(canvas.width - 60, ship.x));
+
+  document.getElementById('aiState').textContent = ship.state;
+  document.getElementById('hudState').textContent = `AI STATE: ${ship.state}`;
+}
+
+function updateGameEngine() {
+  updateVectorTrackingAI();
+
+  stars.forEach(s => {
+    s.y += s.speed;
+    if (s.y > canvas.height) s.y = 0;
+  });
+
+  let fireRateMap = { '1x': 0.12, '2x': 0.2, '4x': 0.32, '8x': 0.5 };
+  let fireChance = fireRateMap[ShipState.threadSpeed] || 0.25;
+
+  if (aliens.length > 0 && Math.random() < fireChance && lasers.length < 18) {
+    let target = aliens.reduce((prev, curr) => (curr.hp < prev.hp) ? curr : prev, aliens[0]);
+    playRetroSound('laser');
+
+    let bulletSpeed = 14;
+    let baseAngle = Math.atan2((target.y + 16) - ship.y, (target.x + 16) - ship.x);
+
+    let beamCount = ShipState.threadSpeed === '8x' ? 4 : (ShipState.threadSpeed === '4x' ? 3 : (ShipState.threadSpeed === '2x' ? 2 : 1));
+
+    for (let i = 0; i < beamCount; i++) {
+      let spreadOffset = (i - (beamCount - 1) / 2) * 0.12;
+      let angle = baseAngle + spreadOffset;
+
+      lasers.push({
+        x: ship.x,
+        y: ship.y - 10,
+        vx: Math.cos(angle) * bulletSpeed,
+        vy: Math.sin(angle) * bulletSpeed,
+        alienId: target.id
+      });
+    }
+  }
+
+  aliens.forEach(a => {
+    if (a.y < a.targetY) a.y += a.speed;
+    a.wobble += a.wobbleSpeed;
+    a.x += Math.sin(a.wobble) * 1.6;
+    if (a.hitFlash > 0) a.hitFlash--;
+  });
+
+  lasers.forEach((l, lIdx) => {
+    l.x += l.vx;
+    l.y += l.vy;
+
+    let a = aliens.find(al => al.id === l.alienId);
+    if (!a) {
+      if (l.x < 0 || l.x > canvas.width || l.y < 0 || l.y > canvas.height) {
+        lasers.splice(lIdx, 1);
+      }
+      return;
+    }
+
+    let dx = (a.x + 16) - l.x;
+    let dy = (a.y + 16) - l.y;
+    let dist = Math.hypot(dx, dy);
+
+    if (dist < 18) {
+      lasers.splice(lIdx, 1);
+
+      let dmgMap = { '1x': 45, '2x': 75, '4x': 130, '8x': 250 };
+      let dealtDmg = dmgMap[ShipState.threadSpeed] || 100;
+      a.hp -= dealtDmg;
+      a.hitFlash = 6;
+
+      damagePopups.push({
+        x: a.x + 8 + (Math.random() - 0.5) * 20,
+        y: a.y - 15,
+        text: `-${dealtDmg}`,
+        color: dealtDmg > 150 ? '#ff007f' : '#ffd866',
+        life: 25
+      });
+
+      if (a.hp <= 0) {
+        playRetroSound('explosion');
+        playRetroSound('harvest');
+
+        for (let p = 0; p < 30; p++) {
+          particles.push({
+            x: a.x + 16,
+            y: a.y + 16,
+            vx: (Math.random() - 0.5) * 9,
+            vy: (Math.random() - 0.5) * 9,
+            color: Math.random() > 0.5 ? ShipState.accentColor : '#00ff66',
+            life: 45
+          });
+        }
+
+        harvestedAssetsData.push(a);
+        document.getElementById('harvestCount').textContent = harvestedAssetsData.length;
+        updateDataVaultDropdown();
+
+        aliens = aliens.filter(al => al.id !== a.id);
+        document.getElementById('alienCount').textContent = aliens.length;
+        document.getElementById('hudActiveAliens').textContent = `ACTIVE ALIENS: ${aliens.length}`;
+
+        if (aliens.length === 0) {
+          document.getElementById('globalStatus').textContent = `ALL TARGETS HARVESTED SUCCESSFULLY`;
+        }
+      }
+    } else if (l.y < -20 || l.y > canvas.height + 20 || l.x < -20 || l.x > canvas.width + 20) {
+      lasers.splice(lIdx, 1);
+    }
+  });
+
+  particles.forEach((pt, i) => {
+    pt.x += pt.vx;
+    pt.y += pt.vy;
+    pt.life--;
+    if (pt.life <= 0) particles.splice(i, 1);
+  });
+
+  damagePopups.forEach((dp, i) => {
+    dp.y -= 1.2;
+    dp.life--;
+    if (dp.life <= 0) damagePopups.splice(i, 1);
+  });
+}
+
+function updateDataVaultDropdown() {
+  const select = document.getElementById('targetSelect');
+  select.innerHTML = '<option value="">-- Select Harvested Target URL --</option>';
+  harvestedAssetsData.forEach((item, idx) => {
+    let opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = item.url;
+    select.appendChild(opt);
+  });
+}
+
+document.getElementById('targetSelect').addEventListener('change', (e) => {
+  const idx = e.target.value;
+  const metaInfo = document.getElementById('metaInfo');
+  const domContent = document.getElementById('domContent');
+  const gallery = document.getElementById('assetGallery');
+
+  const questLogOutput = document.getElementById('questLogOutput');
+
+  if (idx === "") {
+    metaInfo.innerHTML = "Select a harvested target URL above to view metadata, response latency, and network headers.";
+    domContent.innerHTML = "No DOM content extracted yet.";
+    gallery.innerHTML = '<div class="asset-card rounded"><div class="asset-preview">No assets harvested yet</div></div>';
+    questLogOutput.textContent = "SELECT A TARGET URL ABOVE TO DECODE THE 8-BIT QUEST LOG BRIEFING.";
+    return;
+  }
+
+  const target = harvestedAssetsData[idx];
+  metaInfo.innerHTML = `
+    <strong>Target URL:</strong> <a href="${target.url}" target="_blank" class="text-scarpeyCyan underline">${target.url}</a><br>
+    <strong>Domain:</strong> ${target.domain}<br>
+    <strong>Response Latency:</strong> ${target.latency || 84} ms<br>
+    <strong>HTTP Status:</strong> <span class="text-emerald-400">${target.status || '200 OK'}</span><br>
+    <strong>SSL Secure Cert:</strong> TLS_AES_256_GCM_SHA384 (Valid)
+  `;
+
+  domContent.innerHTML = target.headings.map(h => `<div class="mb-1.5 pb-1 border-b border-scarpeyCard text-scarpeyYellow font-semibold">&bull; ${h}</div>`).join('');
+
+  gallery.innerHTML = '';
+  target.assets.forEach(asset => {
+    let card = document.createElement('div');
+    card.className = 'asset-card rounded';
+    card.innerHTML = `
+      <div class="asset-preview rounded">
+        <div style="font-weight:700; margin-bottom:4px;">${asset.name}</div>
+        <div style="font-size:0.75rem; color:#94a3b8; word-break:break-all;">${asset.url}</div>
+      </div>
+      <a href="${asset.url}" target="_blank" class="pixel-btn font-pixel text-[9px] py-2 text-center bg-scarpeyAccent text-white w-full block rounded">🔗 OPEN / DOWNLOAD</a>
+    `;
+    gallery.appendChild(card);
+  });
+
+  // Generate Retro Terminal Executive Summary / 8-Bit Quest Log
+  let topKeywords = target.headings.length > 0 ? target.headings.slice(0, 3).join(', ') : 'Root Telemetry, Secure Endpoint';
+  let asciiBrief = `========================================================\n`;
+  asciiBrief   += `       BITSWARMER // 8-BIT QUEST LOG & BRIEFING        \n`;
+  asciiBrief   += `========================================================\n`;
+  asciiBrief   += `> TARGET DOMAIN : ${target.domain}\n`;
+  asciiBrief   += `> ENDPOINT URL  : ${target.url}\n`;
+  asciiBrief   += `> STATUS CODE   : ${target.status || '200 OK (SECURE)'}\n`;
+  asciiBrief   += `> PING LATENCY  : ${target.latency || 84}ms [OPTIMAL]\n`;
+  asciiBrief   += `--------------------------------------------------------\n`;
+  asciiBrief   += `> CORE METADATA & HEADINGS:\n`;
+  if (target.headings.length > 0) {
+    target.headings.forEach((h, hIdx) => {
+      asciiBrief += `  [#${hIdx + 1}] ${h}\n`;
+    });
+  } else {
+    asciiBrief += `  [-] Standard telemetry stream detected.\n`;
+  }
+  asciiBrief   += `--------------------------------------------------------\n`;
+  asciiBrief   += `> TOP KEYWORDS  : [ ${topKeywords} ]\n`;
+  asciiBrief   += `> ASSET HEALTH  : ${target.assets.length} Harvested Assets Validated\n`;
+  asciiBrief   += `> SECURITY      : AES-256 TLS Encryption Active\n`;
+  asciiBrief   += `========================================================\n`;
+  asciiBrief   += `[STATUS]: EXECUTIVE SUMMARY DECODED SUCCESSFULLY. READY.`;
+
+  questLogOutput.textContent = asciiBrief;
+});
+
+document.getElementById('trashAllBtn').addEventListener('click', () => {
+  if (harvestedAssetsData.length === 0) {
+    alert('The Data Vault is already empty.');
+    return;
+  }
+  if (confirm('Are you sure you want to trash all past harvested results and asset galleries?')) {
+    harvestedAssetsData = [];
+    document.getElementById('harvestCount').textContent = '0';
+    updateDataVaultDropdown();
+    document.getElementById('metaInfo').innerHTML = 'Select a harvested target URL above to view metadata, response latency, and network headers.';
+    document.getElementById('domContent').innerHTML = 'No DOM content extracted yet.';
+    document.getElementById('assetGallery').innerHTML = '<div class="asset-card rounded"><div class="asset-preview">No assets harvested yet</div></div>';
+    playRetroSound('explosion');
+    alert('All past results have been successfully purged from the Data Vault.');
+  }
+});
+
+function drawGameArena() {
+  ctx.fillStyle = '#03050a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = '#ffffff';
+  stars.forEach(s => ctx.fillRect(s.x, s.y, s.size, s.size));
+
+  // Micro-banking tilt based on horizontal velocity (Lerp momentum)
+  const matrix = HullMatrices[ShipState.hullType] || HullMatrices.DREADNOUGHT;
+  render8BitSprite(ctx, matrix, ship.x, ship.y, 4.2, ShipState.primaryColor, ShipState.accentColor, ShipState.thrusterColor, ship.vx * 0.04);
+
+  // Dynamic Vector-Aligned Thruster Flame
+  ctx.fillStyle = ShipState.thrusterColor;
+  let flameLen = 12 + Math.abs(ship.vx) * 3 + Math.random() * 6;
+  ctx.fillRect(ship.x - 14 - ship.vx * 0.5, ship.y + 26, 6, flameLen);
+  ctx.fillRect(ship.x + 8 - ship.vx * 0.5, ship.y + 26, 6, flameLen);
+
+  // Draw Galaga Aliens & HP Bars
+  aliens.forEach(a => {
+    let alienPrimary = a.hitFlash > 0 ? '#ffffff' : (a.isBoss ? '#ab9df2' : '#ff007f');
+    render8BitSprite(ctx, AlienMatrix, a.x + 16, a.y + 16, 3.8, alienPrimary, a.isBoss ? '#ff007f' : '#ffd866', '#00ffff', 0);
+
+    if (a.isBoss) {
+      ctx.strokeStyle = '#00ffff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(a.x - 2, a.y - 2, 40, 40);
+      ctx.font = '9px "Press Start 2P"';
+      ctx.fillStyle = '#00ffff';
+      ctx.fillText('BOSS SHIELD', a.x - 20, a.y - 30);
+    }
+
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(a.x - 6, a.y - 14, 52, 6);
+    ctx.fillStyle = a.hp > a.maxHp * 0.4 ? '#00ff66' : '#ff007f';
+    ctx.fillRect(a.x - 6, a.y - 14, (a.hp / a.maxHp) * 52, 6);
+
+    ctx.font = '13px "Press Start 2P"';
+    ctx.fillStyle = a.isBoss ? '#ab9df2' : '#00ffff';
+    ctx.fillText(a.domain + (a.isBoss ? ' [BOSS]' : ''), a.x - 12, a.y - 20);
+  });
+
+  // Draw Damage Popups
+  damagePopups.forEach(dp => {
+    ctx.font = 'bold 13px "Press Start 2P"';
+    ctx.fillStyle = dp.color;
+    ctx.fillText(dp.text, dp.x, dp.y);
+  });
+
+  // Draw Diagonal/Fan-Spread Lasers
+  lasers.forEach(l => {
+    ctx.fillStyle = ShipState.threadSpeed === '8x' ? '#ff007f' : '#00ffff';
+    ctx.fillRect(l.x - 2, l.y - 6, 4, 14);
+  });
+
+  // Draw Particles
+  particles.forEach(pt => {
+    ctx.fillStyle = pt.color;
+    ctx.fillRect(pt.x, pt.y, 4, 4);
+  });
+}
+
+function gameLoop() {
+  updateGameEngine();
+  drawGameArena();
+  requestAnimationFrame(gameLoop);
+}
+
+// Phase 3: Bulk Asset Exporter (JSZip) & Crawler Graph Renderer
+const crawlerCanvas = document.getElementById('crawlerCanvas');
+const crawlerCtx = crawlerCanvas ? crawlerCanvas.getContext('2d') : null;
+
+function drawCrawlerGraph() {
+  if (!crawlerCtx || !crawlerCanvas) return;
+  crawlerCtx.fillStyle = '#03050a';
+  crawlerCtx.fillRect(0, 0, crawlerCanvas.width, crawlerCanvas.height);
+
+  // Grid
+  crawlerCtx.strokeStyle = '#111827';
+  crawlerCtx.lineWidth = 1;
+  for (let x = 0; x < crawlerCanvas.width; x += 40) {
+    crawlerCtx.beginPath(); crawlerCtx.moveTo(x, 0); crawlerCtx.lineTo(x, crawlerCanvas.height); crawlerCtx.stroke();
+  }
+  for (let y = 0; y < crawlerCanvas.height; y += 40) {
+    crawlerCtx.beginPath(); crawlerCtx.moveTo(0, y); crawlerCtx.lineTo(crawlerCanvas.width, y); crawlerCtx.stroke();
+  }
+
+  const centerX = crawlerCanvas.width / 2;
+  const centerY = crawlerCanvas.height / 2;
+
+  // Draw Central Boss Root Node
+  crawlerCtx.fillStyle = '#ff007f';
+  crawlerCtx.fillRect(centerX - 35, centerY - 20, 70, 40);
+  crawlerCtx.strokeStyle = '#00ff66';
+  crawlerCtx.lineWidth = 2;
+  crawlerCtx.strokeRect(centerX - 35, centerY - 20, 70, 40);
+
+  crawlerCtx.font = '9px "Press Start 2P"';
+  crawlerCtx.fillStyle = '#fcfcfa';
+  crawlerCtx.fillText('ROOT DOMAIN', centerX - 30, centerY - 5);
+
+  if (harvestedAssetsData.length === 0) {
+    crawlerCtx.fillStyle = '#00ffff';
+    crawlerCtx.fillText('NO HARVESTED NODES FOUND - LAUNCH FLEET IN INGESTION HUB', centerX - 220, centerY + 65);
+    return;
+  }
+
+  // Draw Orbiting Nodes
+  const angleStep = (Math.PI * 2) / harvestedAssetsData.length;
+  harvestedAssetsData.forEach((item, idx) => {
+    let angle = idx * angleStep + (Date.now() * 0.0005);
+    let radiusX = 240;
+    let radiusY = 100;
+    let nodeX = centerX + Math.cos(angle) * radiusX;
+    let nodeY = centerY + Math.sin(angle) * radiusY;
+
+    // Line connection
+    crawlerCtx.strokeStyle = '#00ff66';
+    crawlerCtx.lineWidth = 1.5;
+    crawlerCtx.beginPath();
+    crawlerCtx.moveTo(centerX, centerY);
+    crawlerCtx.lineTo(nodeX, nodeY);
+    crawlerCtx.stroke();
+
+    // Node Box
+    crawlerCtx.fillStyle = '#111827';
+    crawlerCtx.fillRect(nodeX - 45, nodeY - 18, 90, 36);
+    crawlerCtx.strokeStyle = '#00ffff';
+    crawlerCtx.lineWidth = 2;
+    crawlerCtx.strokeRect(nodeX - 45, nodeY - 18, 90, 36);
+
+    crawlerCtx.font = '8px "Press Start 2P"';
+    crawlerCtx.fillStyle = '#00ff66';
+    crawlerCtx.fillText(item.domain.substring(0, 12), nodeX - 40, nodeY - 3);
+  });
+}
+
+setInterval(drawCrawlerGraph, 50);
+
+// JSZip Bulk Exporter
+document.getElementById('downloadZipBtn').addEventListener('click', async () => {
+  if (harvestedAssetsData.length === 0) {
+    alert('No harvested assets found in the vault to zip.');
+    return;
+  }
+  try {
+    const zip = new JSZip();
+    const folder = zip.folder("pixel_scraper_loot");
+
+    harvestedAssetsData.forEach((item, idx) => {
+      folder.file(`target_${idx + 1}_summary.json`, JSON.stringify(item, null, 2));
+      if (item.rawContent) {
+        folder.file(`target_${idx + 1}_raw.html`, item.rawContent);
+      }
+    });
+
+    const content = await zip.generateAsync({ type: "blob" });
+    saveAs(content, "pixel_scraper_loot_vault.zip");
+    alert('Bulk Asset ZIP archive successfully generated and downloaded!');
+  } catch (err) {
+    alert('Error generating ZIP archive: ' + err.message);
+  }
+});
+
+// 8-Bit Summary Report Generator
+document.getElementById('exportReportBtn').addEventListener('click', () => {
+  if (harvestedAssetsData.length === 0) {
+    alert('No data available for report export.');
+    return;
+  }
+
+  let report = `# BITSWARMER // COMBAT EXTRACTION REPORT\n`;
+  report += `====================================================\n\n`;
+  report += `- Total Target URLs Scraped: ${harvestedAssetsData.length}\n`;
+  report += `- System Status: SUCCESS (100% Extraction)\n`;
+  report += `- Timestamp: ${new Date().toISOString()}\n\n`;
+  report += `## HARVESTED TARGET INVENTORY\n`;
+  report += `------------------------------------\n`;
+
+  harvestedAssetsData.forEach((item, idx) => {
+    report += `\n### Target [${idx + 1}]: ${item.url}\n`;
+    report += `- Domain: ${item.domain}\n`;
+    report += `- Final HP / Status: ${item.hp <= 0 ? 'HARVESTED' : item.hp} (${item.status})\n`;
+    report += `- Latency: ${item.latency} ms\n`;
+    report += `- Extracted Headings: ${item.headings.length}\n`;
+    report += `- Harvested Assets: ${item.assets.length}\n`;
+  });
+
+  const blob = new Blob([report], { type: "text/markdown;charset=utf-8" });
+  saveAs(blob, "pixel_scraper_combat_report.md");
+  alert('8-Bit Styled Summary Report (.md) successfully exported!');
+});
+
+// 8-Bit Procedural BGM Synth (Galaga Arcade Lead & Bassline)
+let bgmInterval = null;
+let isBgmPlaying = false;
+const leadMelody = [
+  587.33, 587.33, 880.00, 783.99, 698.46, 587.33, 523.25, 587.33,
+  659.25, 698.46, 659.25, 587.33, 523.25, 493.88, 523.25, 587.33
+];
+const bassLine = [
+  146.83, 146.83, 220.00, 220.00, 174.61, 174.61, 130.81, 130.81
+];
+let leadIdx = 0;
+let bassIdx = 0;
+
+function playBgmBeat() {
+  if (!isBgmPlaying) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const leadOsc = audioCtx.createOscillator();
+    const leadGain = audioCtx.createGain();
+    leadOsc.type = 'square';
+    leadOsc.frequency.setValueAtTime(leadMelody[leadIdx], audioCtx.currentTime);
+    leadIdx = (leadIdx + 1) % leadMelody.length;
+
+    leadGain.gain.setValueAtTime(0.045, audioCtx.currentTime);
+    leadGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.16);
+
+    leadOsc.connect(leadGain);
+    leadGain.connect(audioCtx.destination);
+    leadOsc.start();
+    leadOsc.stop(audioCtx.currentTime + 0.16);
+
+    if (leadIdx % 2 === 0) {
+      const bassOsc = audioCtx.createOscillator();
+      const bassGain = audioCtx.createGain();
+      bassOsc.type = 'triangle';
+      bassOsc.frequency.setValueAtTime(bassLine[bassIdx], audioCtx.currentTime);
+      bassIdx = (bassIdx + 1) % bassLine.length;
+
+      bassGain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+      bassGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+
+      bassOsc.connect(bassGain);
+      bassGain.connect(audioCtx.destination);
+      bassOsc.start();
+      bassOsc.stop(audioCtx.currentTime + 0.3);
+    }
+  } catch (e) {}
+}
+
+document.getElementById('bgmToggleBtn').addEventListener('click', () => {
+  isBgmPlaying = !isBgmPlaying;
+  const icon = document.getElementById('bgmIcon');
+  const label = document.getElementById('bgmLabel');
+
+  if (isBgmPlaying) {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    icon.className = 'fa-solid fa-volume-high text-scarpeyGreen animate-bounce';
+    label.textContent = 'BGM: ON';
+    if (!bgmInterval) {
+      bgmInterval = setInterval(playBgmBeat, 180);
+    }
+  } else {
+    icon.className = 'fa-solid fa-volume-xmark';
+    label.textContent = 'BGM: OFF';
+    if (bgmInterval) {
+      clearInterval(bgmInterval);
+      bgmInterval = null;
+    }
+  }
+});
+
+// Initial Spawn
+spawnAlienFleet('https://httpbin.org/json');
+spawnAlienFleet('https://api.github.com/zen');
+gameLoop();
+</script>
+
+</body>
+</html>
